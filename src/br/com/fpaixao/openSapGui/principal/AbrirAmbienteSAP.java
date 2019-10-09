@@ -23,11 +23,11 @@ public class AbrirAmbienteSAP {
 
 		GereciadorArquivoTxt gerente = new GereciadorArquivoTxt();
 		File file = new File("meutexto.txt");
-		
+
 		String key = "Mary has one cat";
 
 		try {
-                                              
+
 			CryptoUtils.decrypt(key, file, file);
 			Scanner scanner = new Scanner(file);
 
@@ -78,7 +78,7 @@ public class AbrirAmbienteSAP {
 						ambientes.add(new SapLogonDado(sysname, client, user, pw));
 
 						CryptoUtils.decrypt(key, file, file);
-						
+
 						if (gerente.gravarArquivo(file, ambientes)) {
 							System.out.println("Novo ambiente gravado");
 						} else {
@@ -86,13 +86,42 @@ public class AbrirAmbienteSAP {
 						}
 
 						CryptoUtils.encrypt(key, file, file);
-						
+
 						perguntaQualAmbiente = gerente.getMensagemSaida(ambientes);
 
 						break;
 
 					case "DEL":
-						System.out.println("Falta implemnetar");
+
+						SapLogonDado objDeletar = null;
+
+						System.out.println("Digite o ambiente para deleção: ");
+						comando = bufferEntrada.readLine().toUpperCase();
+
+						for (SapLogonDado sapLogonDado : ambientes) {
+							if (sapLogonDado.getSysname().equalsIgnoreCase(comando)) {
+								objDeletar = sapLogonDado;
+								break;
+							}
+						}
+
+						if (objDeletar != null) {
+
+							ambientes.remove(objDeletar);
+
+							CryptoUtils.decrypt(key, file, file);
+
+							if (gerente.gravarArquivo(file, ambientes)) {
+								System.out.println("Ambiante " + comando + " removido");
+							} else {
+								System.out.println("Não foi possível gravar");
+							}
+
+							CryptoUtils.encrypt(key, file, file);
+
+							perguntaQualAmbiente = gerente.getMensagemSaida(ambientes);
+						}
+
 						break;
 
 					default:
@@ -106,14 +135,17 @@ public class AbrirAmbienteSAP {
 
 					}
 
-					for (int i = 0; i < ambientes.size(); i++) {
+					if (ambienteSelecionado.length() > 2) {
 
-						if (ambientes.get(i).getSysname()
-								.equalsIgnoreCase((String) ambienteSelecionado.subSequence(0, 3))) {
+						for (int i = 0; i < ambientes.size(); i++) {
 
-							ambientes.get(i).executarComandoLogin();
-							ambienteEcontrado = true;
-							break;
+							if (ambientes.get(i).getSysname()
+									.equalsIgnoreCase((String) ambienteSelecionado.subSequence(0, 3))) {
+
+								ambientes.get(i).executarComandoLogin();
+								ambienteEcontrado = true;
+								break;
+							}
 						}
 					}
 				}
