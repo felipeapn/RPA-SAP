@@ -22,14 +22,31 @@ public class AbrirAmbienteSAP {
 		BufferedReader bufferEntrada = new BufferedReader(new InputStreamReader(System.in));
 
 		GereciadorArquivoTxt gerente = new GereciadorArquivoTxt();
-		File file = new File("meutexto.txt");
+		File file = new File("meutexto3.txt");
 
 		String key = "Mary has one cat";
 
 		try {
 
+			if (!file.exists()) {
+				file.createNewFile();
+				CryptoUtils.encrypt(key, file, file);
+			}
+
 			CryptoUtils.decrypt(key, file, file);
 			Scanner scanner = new Scanner(file);
+
+			if (!scanner.hasNextLine()) {
+				System.out.println("Primeiro acesso: Entrar Ambiente de acesso ao SAP");
+				ambientes.add(gerente.criaAmbientes(bufferEntrada));
+
+				if (gerente.gravarArquivo(file, ambientes)) {
+					System.out.println("Novo ambiente gravado");
+				} else {
+					System.out.println("Não foi possível gravar");
+				}
+
+			}
 
 			while (scanner.hasNextLine()) {
 
@@ -66,16 +83,7 @@ public class AbrirAmbienteSAP {
 
 					case "ADD":
 
-						System.out.print("Informar ambiente: ");
-						String sysname = bufferEntrada.readLine().toUpperCase();
-						System.out.print("Informar client: ");
-						String client = bufferEntrada.readLine().toUpperCase();
-						System.out.print("Informar user: ");
-						String user = bufferEntrada.readLine().toUpperCase();
-						System.out.print("Informar senha: ");
-						String pw = bufferEntrada.readLine().toUpperCase();
-
-						ambientes.add(new SapLogonDado(sysname, client, user, pw));
+						ambientes.add(gerente.criaAmbientes(bufferEntrada));
 
 						CryptoUtils.decrypt(key, file, file);
 
@@ -119,9 +127,11 @@ public class AbrirAmbienteSAP {
 
 							CryptoUtils.encrypt(key, file, file);
 
-							perguntaQualAmbiente = gerente.getMensagemSaida(ambientes);
+						} else {
+							System.out.println("Ambiente não existe");
 						}
 
+						perguntaQualAmbiente = gerente.getMensagemSaida(ambientes);
 						break;
 
 					default:
@@ -155,6 +165,7 @@ public class AbrirAmbienteSAP {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 
-	}
+	} 
 }
