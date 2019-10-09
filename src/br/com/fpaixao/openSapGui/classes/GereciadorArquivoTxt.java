@@ -1,61 +1,45 @@
 package br.com.fpaixao.openSapGui.classes;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.ArrayList;
 
-public final class GereciadorArquivoTxt {
-
-	private static int numeroLinhas = 0;
-
-	public static int contaLinhas() {
-
-		try {
-			InputStream fls = new FileInputStream("meutexto.txt");
-			Reader reader = new InputStreamReader(fls);
-			BufferedReader br = new BufferedReader(reader);
-
-			//br.readLine();
-			//GereciadorArquivoTxt.numeroLinhas += 1;
-
-			while (br.readLine() != null) {
-				GereciadorArquivoTxt.numeroLinhas += 1;
-			}
-			br.close();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			
-		}
-		return GereciadorArquivoTxt.numeroLinhas;
-
-	}
+// alterar aqui
+public class GereciadorArquivoTxt {
 	
-	public static String[] retornaParametrosPorSeparador (String linha, char separador, int numeroParamentros) {
+	public String getMensagemSaida (ArrayList<SapLogonDado> list) {
 		
-		int parametro = 0;
-		StringBuilder textoDoParametro = new StringBuilder();
-		String parametros[] = new String[numeroParamentros];
+		StringBuilder stringBuilder = new StringBuilder("Selecione o ambiente (");
 		
-		for (int i=0; i < linha.length(); i++) {
-			
-			if (linha.charAt(i)!= separador) {
-				
-				textoDoParametro.append(linha.charAt(i));
-				
+		for (int i = 0; i < list.size(); i++) {
+			stringBuilder.append(list.get(i).getSysname());
+			if (i == list.size() - 1) {
+				stringBuilder.append("):");
 			} else {
-				
-				parametros[parametro] = textoDoParametro.toString();
-				textoDoParametro.setLength(0);
-				parametro += 1;
-				
+				stringBuilder.append(" | ");
 			}
 		}
 		
-		return parametros;
+		return stringBuilder.toString();	
 		
 	}
+
+	public boolean gravarArquivo(File file, ArrayList<SapLogonDado> ambientes) throws Exception {
+		
+		BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+		
+		for (SapLogonDado sapLogonDado : ambientes) {
+			
+			bw.write(sapLogonDado.getLinhaFormatada());
+			bw.newLine();	
+		}
+		
+		bw.close();
+		
+		return true;
+	}
+
+	
 
 }

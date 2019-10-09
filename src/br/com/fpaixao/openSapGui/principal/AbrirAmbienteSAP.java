@@ -1,80 +1,125 @@
 package br.com.fpaixao.openSapGui.principal;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.File;
 import java.io.InputStreamReader;
-import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Scanner;
 
+import br.com.fpaixao.openSapGui.classes.CryptoUtils;
 import br.com.fpaixao.openSapGui.classes.GereciadorArquivoTxt;
 import br.com.fpaixao.openSapGui.classes.SapLogonDado;
 
 public class AbrirAmbienteSAP {
 
-	int contaEspaço;
-	// String param2;
-	// String param1;
-
 	public static void main(String[] args) {
 
-		int contador = 0;
 		boolean ambienteEcontrado = false;
 		String ambienteSelecionado = "";
-		SapLogonDado ambientes[] = new SapLogonDado[GereciadorArquivoTxt.contaLinhas()];
-		StringBuilder perguntaQualAmbiente = new StringBuilder("Selecione o abiente (");
+		ArrayList<SapLogonDado> ambientes = new ArrayList<SapLogonDado>();
+		String perguntaQualAmbiente;
 		BufferedReader bufferEntrada = new BufferedReader(new InputStreamReader(System.in));
 
+		GereciadorArquivoTxt gerente = new GereciadorArquivoTxt();
+		File file = new File("meutexto.txt");
+		
+		String key = "Mary has one cat";
+
 		try {
-			InputStream fls = new FileInputStream("meutexto.txt");
-			Reader reader = new InputStreamReader(fls);
-			BufferedReader br = new BufferedReader(reader);
+                                              
+			CryptoUtils.decrypt(key, file, file);
+			Scanner scanner = new Scanner(file);
 
-			String linha = br.readLine();
+			while (scanner.hasNextLine()) {
 
-			while (linha != null) {
+				Scanner linha = new Scanner(scanner.nextLine());
+				linha.useDelimiter("	");
+				linha.useLocale(Locale.US);
 
-				String parametros[] = GereciadorArquivoTxt.retornaParametrosPorSeparador(linha, '	', 4);
+				ambientes.add(new SapLogonDado(linha.next(), linha.next(), linha.next(), linha.next()));
 
-				ambientes[contador] = new SapLogonDado(parametros[0], parametros[1], parametros[2], parametros[3]);
-
-				contador++;
-				linha = br.readLine();
+				linha.close();
 			}
 
-			br.close();
+			scanner.close();
+			CryptoUtils.encrypt(key, file, file);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		for (int i = 0; i < ambientes.length; i++) {
-			perguntaQualAmbiente.append(ambientes[i].getSysname());
-			if (i == ambientes.length - 1) {
-				perguntaQualAmbiente.append("):");
-			} else {
-				perguntaQualAmbiente.append(" | ");
-			}
-		}
+		perguntaQualAmbiente = gerente.getMensagemSaida(ambientes);
 
 		try {
 			while (!ambienteEcontrado) {
 
 				System.out.println(perguntaQualAmbiente);
-				ambienteSelecionado = bufferEntrada.readLine();
-				System.out.println(ambienteSelecionado.toUpperCase());
+				ambienteSelecionado = bufferEntrada.readLine().toUpperCase();
 
-				for (int i = 0; i < ambientes.length; i++) {
+				if (ambienteSelecionado.equalsIgnoreCase("EDIT")) {
 
-					if (ambientes[i].getSysname().equalsIgnoreCase(ambienteSelecionado)) {
-												
-						ambientes[i].executarComandoLogin();
-						ambienteEcontrado = true;
+					System.out.println("ADD -> Novo ambiente | DEL -> Apagar Ambiente");
+					String comando = bufferEntrada.readLine().toUpperCase();
+
+					switch (comando) {
+
+					case "ADD":
+
+						System.out.print("Informar ambiente: ");
+						String sysname = bufferEntrada.readLine().toUpperCase();
+						System.out.print("Informar client: ");
+						String client = bufferEntrada.readLine().toUpperCase();
+						System.out.print("Informar user: ");
+						String user = bufferEntrada.readLine().toUpperCase();
+						System.out.print("Informar senha: ");
+						String pw = bufferEntrada.readLine().toUpperCase();
+
+						ambientes.add(new SapLogonDado(sysname, client, user, pw));
+
+						CryptoUtils.decrypt(key, file, file);
+						
+						if (gerente.gravarArquivo(file, ambientes)) {
+							System.out.println("Novo ambiente gravado");
+						} else {
+							System.out.println("Não foi possível gravar");
+						}
+
+						CryptoUtils.encrypt(key, file, file);
+						
+						perguntaQualAmbiente = gerente.getMensagemSaida(ambientes);
+
 						break;
+
+					case "DEL":
+						System.out.println("Falta implemnetar");
+						break;
+
+					default:
+						System.out.println("Comando não existe");
+					}
+
+				} else {
+					if (ambienteSelecionado.length() > 4) {
+
+						SapLogonDado.setLanguage((String) ambienteSelecionado.subSequence(3, 5));
+
+					}
+
+					for (int i = 0; i < ambientes.size(); i++) {
+
+						if (ambientes.get(i).getSysname()
+								.equalsIgnoreCase((String) ambienteSelecionado.subSequence(0, 3))) {
+
+							ambientes.get(i).executarComandoLogin();
+							ambienteEcontrado = true;
+							break;
+						}
 					}
 				}
+
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
